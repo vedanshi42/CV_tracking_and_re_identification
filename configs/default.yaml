@@ -1,0 +1,47 @@
+project:
+  name: CV_tracking_and_re_identification
+
+input:
+  # Add one entry per camera. Each id is carried with every frame packet so
+  # trackers and other downstream modules can keep per-camera state.
+  sources:
+    - id: camera_1
+      source_type: webcam
+      camera_index: 0
+    # Examples:
+    # - id: entrance_file
+    #   source_type: video_file
+    #   video_path: data/videos/entrance.mp4
+    # - id: phone_camera
+    #   source_type: stream
+    #   stream_url: "http://192.168.1.20:8080/video"
+
+  # OpenCV chooses an appropriate backend by default. Set a numeric OpenCV
+  # backend id per source or here for all sources when needed.
+  backend: null
+
+detection:
+  model: yolo11n.pt
+  # Keep low-score person boxes so ByteTrack can use its second association step.
+  confidence_threshold: 0.1
+  person_class_id: 0
+  # null selects the best available device; examples: cpu, 0
+  device: null
+
+tracking:
+  enabled: true
+  name: bytetrack
+  bytetrack:
+    track_high_thresh: 0.25
+    track_low_thresh: 0.1
+    new_track_thresh: 0.25
+    track_buffer: 30
+    match_thresh: 0.8
+    fuse_score: true
+
+processing:
+  display: true
+  save_output: true
+  output_path: outputs/videos/tracked_output.mp4
+  fallback_fps: 30
+  codec: mp4v
