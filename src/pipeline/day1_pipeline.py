@@ -29,6 +29,7 @@ class Day1Pipeline:
         output_codec: str = "mp4v",
         annotator: Optional[FrameAnnotator] = None,
         tracker_factory: Optional[Callable] = None,
+        reid_service=None,
     ):
         if save_output and not output_path:
             raise ValueError("output_path is required when save_output is enabled")
@@ -48,6 +49,7 @@ class Day1Pipeline:
         self.output_codec = output_codec
         self.annotator = annotator or FrameAnnotator()
         self.tracker_factory = tracker_factory or PersonTracker
+        self.reid_service = reid_service
         self._trackers = {}
         self._fps_meters = {}
         self._writers = {}
@@ -79,6 +81,16 @@ class Day1Pipeline:
                                 self._trackers[source_id] = tracker
                             tracks = tracker.update(detections, packet.frame)
 
+                        global_ids = {}
+                        if self.reid_service is not None and tracks:
+                            global_ids = self.reid_service.identify(
+                                camera_id=source_id,
+                                frame=packet.frame,
+                                tracks=tracks,
+                                frame_sequence=packet.sequence,
+                                timestamp=packet.timestamp,
+                            )
+
                         processing_fps = fps_meter.stop()
 
                         annotated = self.annotator.annotate(
@@ -90,6 +102,7 @@ class Day1Pipeline:
                             source_fps=packet.metadata.fps,
                             camera_id=source_id,
                             tracking_enabled=self.tracking_enabled,
+                            global_ids=global_ids,
                         )
                         frame_totals[source_id] += 1
                         self._write_frame(source_id, annotated, packet.metadata.fps)

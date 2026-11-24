@@ -1,6 +1,6 @@
 """Draw detection, tracking, and processing information on BGR frames."""
 
-from typing import Optional, Sequence
+from typing import Mapping, Optional, Sequence
 
 import cv2
 import numpy as np
@@ -22,6 +22,7 @@ class FrameAnnotator:
         source_fps: Optional[float] = None,
         camera_id: Optional[str] = None,
         tracking_enabled: bool = True,
+        global_ids: Optional[Mapping[int, int]] = None,
     ) -> np.ndarray:
         annotated = frame.copy()
         objects = tracks if tracking_enabled else detections
@@ -30,7 +31,9 @@ class FrameAnnotator:
             if tracking_enabled:
                 track_id = item.track_id
                 color = self._color(track_id)
-                label = f"Person {track_id} {item.confidence:.2f}"
+                global_id = (global_ids or {}).get(track_id)
+                identity = f"L:{track_id}" if global_id is None else f"L:{track_id} | G:{global_id}"
+                label = f"Person {identity} | {item.confidence:.2f}"
             else:
                 color = (40, 210, 40)
                 label = f"Person {item.confidence:.2f}"

@@ -2,6 +2,8 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 *.pt
+models/*.pth
+models/*.pth.tar
 
 outputs/videos/*
 !outputs/videos/.gitkeep

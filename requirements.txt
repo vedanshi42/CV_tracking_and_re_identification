@@ -4,3 +4,8 @@ numpy>=1.24
 pandas
 matplotlib
 PyYAML>=6.0
+# Re-ID runtime. Install Torchreid from source after these dependencies; see README.
+Cython>=3.0
+scipy>=1.10
+gdown>=5.0
+tensorboard>=2.14

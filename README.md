@@ -134,6 +134,43 @@ main.py
 ## Current limitations
 
 - Live feeds are read sequentially. Slow streams can delay later feeds, and frames are not timestamp-synchronized.
-- Track IDs are local to each camera. Re-ID, global IDs, zones, counting, and crowd analysis are not part of Day 1.
+- Track IDs remain local to each camera. Day 3 adds optional appearance-based
+  Global IDs; zones, counting, and crowd analysis are future work.
 - Output encoding depends on the OpenCV build and installed codecs.
 - A network URL can be selected and attempted, but whether it connects depends on reachability, credentials, stream format, and the installed backend.
+
+## Day 3: Multi-camera Re-ID
+
+The pipeline now adds optional cross-camera appearance matching after local
+ByteTrack tracking:
+
+```text
+Local track -> original-frame crop -> OSNet embedding -> track feature average
+            -> cosine similarity gallery -> Global Person ID when confident
+```
+
+`L:3` means ByteTrack’s local track 3. `G:12` means the conservative Re-ID
+gallery considers this track to be Global Person 12. A local ID from one camera
+never becomes the same global identity as the same numeric local ID from another
+camera without an appearance match.
+
+The default Re-ID model is OSNet x0.25 with the official Market-1501 checkpoint
+at `models/osnet_x0_25_market1501.pth.tar`. The checkpoint is ignored by Git.
+The `reid` YAML section controls model device, sampling, feature history,
+matching threshold, ambiguity handling, crop minimums, and active cross-camera
+conflict protection. See [Day 3 Re-ID notes](docs/day3_reid.md) for the full
+architecture, model preprocessing, gallery behavior, limits, and trade-offs.
+
+Torchreid is installed from its official source because it does not publish a
+usable PyPI package for this environment. After creating a fresh environment,
+install the regular dependencies, then run:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install --no-build-isolation --no-deps git+https://github.com/KaiyangZhou/deep-person-reid.git
+```
+
+The checkpoint can be downloaded with:
+
+```powershell
+.\.venv\Scripts\gdown.exe https://drive.google.com/uc?id=1z1UghYvOTtjx7kEoRfmqSMu-z62J6MAj -O models\osnet_x0_25_market1501.pth.tar
+```

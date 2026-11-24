@@ -23,7 +23,7 @@ input:
 detection:
   model: yolo11n.pt
   # Keep low-score person boxes so ByteTrack can use its second association step.
-  confidence_threshold: 0.1
+  confidence_threshold: 0.26
   person_class_id: 0
   # null selects the best available device; examples: cpu, 0
   device: null
@@ -32,12 +32,34 @@ tracking:
   enabled: true
   name: bytetrack
   bytetrack:
-    track_high_thresh: 0.25
-    track_low_thresh: 0.1
-    new_track_thresh: 0.25
+    track_high_thresh: 0.30
+    track_low_thresh: 0.18
+    new_track_thresh: 0.35
     track_buffer: 30
     match_thresh: 0.8
     fuse_score: true
+
+reid:
+  # OSNet creates person appearance embeddings after ByteTrack assigns a local ID.
+  enabled: true
+  model_name: osnet_x0_25
+  model_path: models/osnet_x0_25_market1501.pth.tar
+  # null selects CUDA when available, otherwise CPU.
+  device: null
+  num_classes: 751
+  batch_size: 16
+  # Embed each local track once every N source frames and average recent samples.
+  embedding_update_interval: 10
+  track_embedding_history_size: 10
+  min_track_embeddings: 3
+  min_crop_width: 41
+  min_crop_height: 50
+  # Cosine matching: uncertain or close competing matches remain unassigned.
+  match_threshold: 0.70
+  ambiguity_margin: 0.03
+  allow_simultaneous_cross_camera: false
+  active_track_timeout_seconds: 2.0
+  gallery_history_size: 100
 
 processing:
   display: true

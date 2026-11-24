@@ -9,6 +9,7 @@ import yaml
 from src.detection.detector import PersonDetector
 from src.input import MultiCameraSource, StreamSource, VideoFileSource, WebcamSource
 from src.pipeline.day1_pipeline import Day1Pipeline
+from src.reid import GlobalIdentityManager, OSNetEmbedder, ReIDService, TrackEmbeddingAggregator
 
 
 def create_video_source(config: dict):
@@ -68,6 +69,7 @@ def build_pipeline(config: dict, project_root: Path) -> Day1Pipeline:
     detection_config = config.get("detection", {})
     tracking_config = config.get("tracking", {})
     processing_config = config.get("processing", {})
+    reid_config = config.get("reid", {})
 
     source = create_multicamera_source(input_config, project_root)
     tracker_name = tracking_config.get("name", "bytetrack").lower()
@@ -83,6 +85,43 @@ def build_pipeline(config: dict, project_root: Path) -> Day1Pipeline:
     if output_path and not Path(output_path).is_absolute():
         output_path = str(project_root / output_path)
 
+    reid_service = None
+    if reid_config.get("enabled", False):
+        checkpoint_path = reid_config.get("model_path")
+        if not checkpoint_path:
+            raise ValueError("reid.model_path is required when Re-ID is enabled")
+        checkpoint_path = Path(checkpoint_path)
+        if not checkpoint_path.is_absolute():
+            checkpoint_path = project_root / checkpoint_path
+        embedder = OSNetEmbedder(
+            model_name=reid_config.get("model_name", "osnet_x0_25"),
+            model_path=str(checkpoint_path),
+            device=reid_config.get("device"),
+            num_classes=reid_config.get("num_classes", 751),
+            batch_size=reid_config.get("batch_size", 16),
+        )
+        aggregator = TrackEmbeddingAggregator(
+            history_size=reid_config.get("track_embedding_history_size", 10),
+            update_interval=reid_config.get("embedding_update_interval", 10),
+        )
+        identity_manager = GlobalIdentityManager(
+            match_threshold=reid_config.get("match_threshold", 0.70),
+            ambiguity_margin=reid_config.get("ambiguity_margin", 0.03),
+            allow_simultaneous_cross_camera=reid_config.get(
+                "allow_simultaneous_cross_camera", False
+            ),
+            active_track_timeout_seconds=reid_config.get("active_track_timeout_seconds", 2.0),
+            history_size=reid_config.get("gallery_history_size", 100),
+        )
+        reid_service = ReIDService(
+            embedder=embedder,
+            aggregator=aggregator,
+            identity_manager=identity_manager,
+            min_crop_width=reid_config.get("min_crop_width", 16),
+            min_crop_height=reid_config.get("min_crop_height", 32),
+            min_track_embeddings=reid_config.get("min_track_embeddings", 3),
+        )
+
     return Day1Pipeline(
         source=source,
         detector=detector,
@@ -93,6 +132,7 @@ def build_pipeline(config: dict, project_root: Path) -> Day1Pipeline:
         output_path=output_path,
         output_fps=processing_config.get("fallback_fps", 30.0),
         output_codec=processing_config.get("codec", "mp4v"),
+        reid_service=reid_service,
     )
 
 
