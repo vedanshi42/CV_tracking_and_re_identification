@@ -8,7 +8,7 @@ import yaml
 
 from src.detection.detector import PersonDetector
 from src.input import MultiCameraSource, StreamSource, VideoFileSource, WebcamSource
-from src.pipeline.day1_pipeline import Day1Pipeline
+from src.pipeline.cv_person_detection_pipeline import CVPersonDetectionPipeline
 from src.reid import GlobalIdentityManager, OSNetEmbedder, ReIDService, TrackEmbeddingAggregator
 
 
@@ -63,7 +63,7 @@ def create_multicamera_source(input_config: dict, project_root: Path):
     return MultiCameraSource(sources)
 
 
-def build_pipeline(config: dict, project_root: Path) -> Day1Pipeline:
+def build_pipeline(config: dict, project_root: Path) -> CVPersonDetectionPipeline:
     """Create pipeline components from the loaded YAML configuration."""
     input_config = config.get("input", {})
     detection_config = config.get("detection", {})
@@ -122,7 +122,7 @@ def build_pipeline(config: dict, project_root: Path) -> Day1Pipeline:
             min_track_embeddings=reid_config.get("min_track_embeddings", 3),
         )
 
-    return Day1Pipeline(
+    return CVPersonDetectionPipeline(
         source=source,
         detector=detector,
         tracking_enabled=tracking_config.get("enabled", True),

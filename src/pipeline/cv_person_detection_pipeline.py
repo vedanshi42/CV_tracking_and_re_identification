@@ -1,4 +1,4 @@
-"""Connect configured frame sources, YOLO detection, ByteTrack, and output."""
+"""Connect frame sources, person detection, tracking, Re-ID, and output."""
 
 import re
 import sys
@@ -13,8 +13,8 @@ from src.utils.metrics import FPSMeter
 from src.visualization.annotator import FrameAnnotator
 
 
-class Day1Pipeline:
-    """Run detection and independent single-camera tracking on every feed."""
+class CVPersonDetectionPipeline:
+    """Run the CV person-detection pipeline on every configured feed."""
 
     def __init__(
         self,

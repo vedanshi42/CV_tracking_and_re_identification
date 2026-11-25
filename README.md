@@ -104,7 +104,7 @@ main.py
   ├─ reads configs/default.yaml
   ├─ creates named video sources
   ├─ loads PersonDetector once
-  └─ Day1Pipeline.run()
+  └─ CVPersonDetectionPipeline.run()
        ├─ MultiCameraSource.read() → {camera_id: FramePacket}
        ├─ PersonDetector.detect(frame) → person detections
        ├─ PersonTracker.update(detections, frame) → local tracks
@@ -120,7 +120,7 @@ main.py
 - `src/tracking/tracker.py`: adapts detections to Ultralytics ByteTrack and returns active boxes with camera-local IDs. ByteTrack matches detections frame-to-frame using motion prediction and box overlap; `track_buffer` controls how many missed frames a track can remain recoverable. Long occlusions or similar overlapping people can still cause IDs to be lost or switch.
 - `src/visualization/annotator.py`: draws boxes and labels, using stable colors for local track IDs, plus frame, person, track, source-FPS, and processing-FPSb information.
 - `src/utils/metrics.py`: measures time spent in detection and tracking. This processing FPS is not the camera's capture FPS; both are shown separately when source FPS is available.
-- `src/pipeline/day1_pipeline.py`: connects the source, detector, per-camera trackers, annotator, optional display, and optional output writers.
+- `src/pipeline/cv_person_detection_pipeline.py`: connects sources, detection, per-camera tracking, Re-ID, annotation, display, and output writers.
 
 ## Library choices and alternatives
 

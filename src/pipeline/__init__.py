@@ -1,3 +1,3 @@
-from .day1_pipeline import Day1Pipeline
+from .cv_person_detection_pipeline import CVPersonDetectionPipeline
 
-__all__ = ["Day1Pipeline"]
+__all__ = ["CVPersonDetectionPipeline"]

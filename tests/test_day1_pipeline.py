@@ -9,7 +9,7 @@ from main import create_multicamera_source
 from src.detection.detector import Detection, PersonDetector
 from src.input.multi_camera_source import MultiCameraSource
 from src.input.video_source import VideoMetadata, VideoSource
-from src.pipeline.day1_pipeline import Day1Pipeline
+from src.pipeline.cv_person_detection_pipeline import CVPersonDetectionPipeline
 from src.tracking.tracker import PersonTracker, TrackedObject
 
 
@@ -77,7 +77,7 @@ class FakePipelineTracker:
         return [TrackedObject(detections[0].bbox, 1, detections[0].confidence)]
 
 
-class Day1PipelineTests(unittest.TestCase):
+class CVPersonDetectionPipelineTests(unittest.TestCase):
     def test_source_config_builds_named_feeds_and_resolves_file_paths(self):
         config = {
             "sources": [
@@ -154,7 +154,7 @@ class Day1PipelineTests(unittest.TestCase):
             "side": FakeVideoSource([frame]),
         })
         detector = PersonDetector(model=FakeModel(FakeResult(FakeBoxes([], [], []))))
-        pipeline = Day1Pipeline(
+        pipeline = CVPersonDetectionPipeline(
             source=sources,
             detector=detector,
             tracking_enabled=False,
@@ -183,7 +183,7 @@ class Day1PipelineTests(unittest.TestCase):
             created_trackers.append(tracker)
             return tracker
 
-        pipeline = Day1Pipeline(
+        pipeline = CVPersonDetectionPipeline(
             source=sources,
             detector=detector,
             tracking_enabled=True,
@@ -200,7 +200,7 @@ class Day1PipelineTests(unittest.TestCase):
 
     def test_pipeline_requires_output_path_when_recording(self):
         with self.assertRaisesRegex(ValueError, "output_path"):
-            Day1Pipeline(
+            CVPersonDetectionPipeline(
                 source=MultiCameraSource({"front": FakeVideoSource([])}),
                 detector=object(),
                 save_output=True,

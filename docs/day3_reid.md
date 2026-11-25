@@ -46,7 +46,8 @@ configured threshold and must not be too close to a second candidate. Otherwise
 the manager creates a new global ID or leaves an ambiguous case unassigned.
 
 `src/reid/service.py` connects these components after ByteTrack. Detector and
-tracker code remain unaware of crops, embeddings, or global IDs.
+tracker code remain unaware of crops, embeddings, or global IDs. The
+`CVPersonDetectionPipeline` orchestrates the resulting end-to-end flow.
 
 ## Why assignments can be wrong
 
